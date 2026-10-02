@@ -124,8 +124,8 @@ def kind_spec(name):
     singular = name[:-1] if name.endswith("s") and len(name) > 3 else name
     return dict(
         singular=singular, template=singular,
-        holds="(say what a %s note holds)" % singular.lower(), nots="(say what does not belong)",
-        title="(say how these are named)",
+        holds="(fill in: what a %s note holds)" % singular.lower(),
+        nots="(fill in: what does not belong)", title="(fill in: how these are named)",
         props=[("categories", "[]"), ("created", "{{date}}")], body="\n")
 
 
@@ -354,7 +354,7 @@ def seed_content(seeder, dest, tokens, kinds):
     types = kinds or ["term"]
     folders = {t: t.capitalize() + ("" if t.endswith("s") else "s") for t in types}
     tokens = dict(tokens, TYPE_LIST=", ".join("`%s`" % t for t in types), FIRST_TYPE=types[0],
-                  FAMILY_ROWS="\n".join("| %s | (what these are) | (how the key is spelled) |"
+                  FAMILY_ROWS="\n".join("| %s | (fill in: what these are) | (fill in: how the key is spelled) |"
                                         % folders[t] for t in types))
     seeder.copy_tree(os.path.join(ASSETS, "content"), dest, tokens)
     for folder in list(folders.values()) + ["Sources"]:
@@ -399,6 +399,7 @@ def main():
     ap.add_argument("--name", help="the vault's display name")
     ap.add_argument("--project", help="the product or project the vault serves (default: the repo folder name)")
     ap.add_argument("--owner", help="whose writing the vault holds (default: git user.name's first word)")
+    ap.add_argument("--prefix", help="roadmap: short prefix for build names, e.g. LD (default: from the project name)")
     ap.add_argument("--kinds", default="", help="brain: kind folders; content: entry types. Comma separated.")
     ap.add_argument("--plugins", default="", help="bundled home-made plugins to install: " + ", ".join(KNOWN_PLUGINS))
     ap.add_argument("--accent", help="accent colour as #rrggbb")
@@ -429,6 +430,8 @@ def main():
         VAULT_PATH="the repo root" if not prefix else "`%s`" % prefix, VAULT_PREFIX=prefix,
         DATE=datetime.date.today().isoformat(), OWNER=owner, HOME_NOTE="Home",
     )
+    letters = [c for c in tokens["PROJECT"] if c.isalpha()]
+    tokens["PREFIX"] = (args.prefix or "".join(letters[:2]) or "B").upper()
     kinds = [k.strip() for k in args.kinds.split(",") if k.strip()]
     plugins = [p.strip() for p in args.plugins.split(",") if p.strip()]
     seeder = Seeder(args.dry_run)
@@ -446,6 +449,10 @@ def main():
             merge_settings(seeder, repo_root, stop_cmd=(
                 'f="${CLAUDE_PROJECT_DIR:-.}/%sbin/session_check.py"; '
                 '[ -f "$f" ] || exit 0; exec python3 "$f"' % prefix))
+        # A fresh vault should pass its own check, so generate the (empty) tables once.
+        if not args.dry_run:
+            subprocess.run([sys.executable, os.path.join(dest, "bin", "reindex.py")],
+                           capture_output=True, timeout=60)
         check = "python3 %sbin/reindex.py --check" % prefix
     else:
         seed_content(seeder, dest, tokens, kinds)

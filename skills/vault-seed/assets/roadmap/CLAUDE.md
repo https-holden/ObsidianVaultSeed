@@ -39,7 +39,7 @@ from directly. Frontmatter:
 | `type` | `idea` |
 | `status` | `Open`, `Done`, `Culled` |
 | `kind` | `NOW`, `SPEC`, `POLISH`, `DREAM` |
-| `area` | free text, kept consistent (list the areas here once they settle) |
+| `area` | free text, kept consistent: (fill in: the areas ideas are filed under) |
 | `created` | ISO date |
 
 `kind` is the triage axis and it carries real meaning:
@@ -66,7 +66,7 @@ it covers. Frontmatter:
 | `ideas` | list of wikilinks to Ideas notes, each quoted |
 
 Name a build with a short prefix and a number so it can be said aloud and found by grep
-(`AB-07 Title`). New notes start from `_templates/`.
+(`@@PREFIX@@-07 Title`). New notes start from `_templates/`.
 
 ## The one rule that keeps it consistent
 

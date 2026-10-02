@@ -19,8 +19,8 @@ Obsidian, "Open folder as vault", this directory. Start at [[Home]].
 
 ## Daily use
 
-(One short paragraph per kind, written as the kinds come into use: when to make one, how to
-name it, what to fill in.)
+(fill in: one short paragraph per kind, as each comes into use: when to make one, how to name
+it, what to fill in.)
 
 ## Keeping it honest
 

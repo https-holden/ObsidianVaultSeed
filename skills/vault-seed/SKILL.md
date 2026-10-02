@@ -55,8 +55,9 @@ with no folder filter would list one vault's notes in the other.
 ## 3. Confirm the plan in a few lines
 
 Before writing, show: archetype, where the vault goes, its name, the kinds or types, plugins,
-whether the Stop hook is wired. Then run the scaffolder with `--dry-run` and show the file
-list if the destination already has files in it. One confirmation, then go.
+whether the Stop hook is wired. Run the scaffolder with `--dry-run` first, every time: it is
+free, and it shows what would be created, what already exists and would be kept, and whether
+`.claude/settings.json` (which sits outside the vault) would change. One confirmation, then go.
 
 ## 4. Scaffold
 
@@ -73,20 +74,28 @@ The scaffold is generic on purpose. What makes it this project's vault is the ne
 
 - Load `obsidian:obsidian-markdown` before hand-editing notes and `obsidian:obsidian-bases`
   before touching a `.base`. They carry syntax that is easy to get subtly wrong.
-- **The vault's `CLAUDE.md`**: replace every parenthesised placeholder with what the interview
-  said. For a brain, fill the map and kinds rows of any kind the seed did not know. For a
-  roadmap, list the areas. For content, say what will read the vault.
+- **Fill the placeholders.** Every gap the seed leaves is written `(fill in: ...)`.
+  `grep -rn "fill in:" <vault>` lists them; replace each with what the interview said, or
+  leave it standing and tell the user when only they can answer it. For a brain that means
+  the map and kinds rows of any kind the seed did not know; for a roadmap, the areas; for
+  content, the families and what will read the vault.
 - **A kept file is a merge to do.** If the seed reported `CLAUDE.md` or a `README` as kept
   (a brain seeded at a repo root that already had one), fold the vault contract from
   `assets/<archetype>/CLAUDE.md` into the existing file by hand; do not replace it.
 - **`Decisions.md`** (brain): record the interview's answers as the first entry, dated.
 - **The project's root `CLAUDE.md`**: when the vault is a subdirectory, add a short section
   pointing at the vault's `CLAUDE.md` and `Home.md`, naming the check command, and (roadmap)
-  stating the session write-back. `references/conventions.md` has the wording to adapt.
+  stating the session write-back. `references/conventions.md` has the wording to adapt. If
+  the project has no root `CLAUDE.md`, create one holding just that section: a build's
+  prompt tells its session to read it.
 - **Do not author content.** No example ideas, no sample knowledge notes, no definitions. An
   invented note is indistinguishable from a real one a month later. The one exception is
   material the user hands you in this session (an existing TODO file, a planning doc): offer
-  to migrate it, one note per item.
+  to migrate it, one note per item, in their words. For a roadmap, type each idea by what
+  stands between it and being built: broken or missing in a way a user meets is `NOW`, a
+  decision has to be made first is `SPEC`, works but is not good yet is `POLISH`, someday is
+  `DREAM`; say the typing is a first pass. Leave the source file where it is and tell the
+  user it can go once they have checked the migration.
 - Run the vault's check and show its output. For a roadmap also run
   `bin/session_check.py --self-test`.
 - If the `obsidian` CLI is installed and the app is running, offer to open the vault;

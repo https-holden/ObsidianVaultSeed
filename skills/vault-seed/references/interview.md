@@ -27,12 +27,19 @@ templates that the owner wants to write themselves means `content`.
 ## 3. What is it called, and whose is it? (sets `--name`, `--project`, `--owner`)
 
 Offer a default from the repo name ("Acme roadmap", "Acme Brain", "The lexicon"). `--owner`
-is the person whose writing the vault holds; it appears in the authorship rules.
+is the person whose writing the vault holds; it appears in the authorship rules of `brain` and
+`content`. Always pass it: the script's fallback is the first word of `git config user.name`,
+which is often a handle. For a `roadmap`, also settle `--prefix`, the two or three letters
+build names start with (`LD-07 Faster search`); default to the project's initials.
 
 ## 4. What kinds of notes? (sets `--kinds`)
 
 - `roadmap`: fixed (Ideas and Builds). Ask instead for the three to six **areas** ideas will
-  be filed under, and write them into the vault's `CLAUDE.md` afterwards.
+  be filed under. An area is a part of the product a person would name ("Search", "Import",
+  "Accounts"), free text in each idea's `area` field, and it is how `Ideas.md` is grouped.
+  There is no flag: write them into the vault's `CLAUDE.md` afterwards. With no answer,
+  propose them from the repo's top-level structure or from the material being migrated, and
+  say they are a first guess.
 - `brain`: pick from the kinds the seed knows, or name new ones (a new name gets a generic
   template to fill in). Known: `Knowledge` (claims), `Playbooks` (procedures), `People`,
   `Projects`, `Meetings`, `References`, `Notes`, `Clippings`, `Daily`. Default:
@@ -72,7 +79,7 @@ Ask only if the user seems to care, otherwise default to none.
 |---|---|
 | purpose | `--archetype roadmap\|brain\|content` |
 | location | `--dest <dir>` |
-| names | `--name "<vault>" --project "<product>" --owner "<person>"` |
+| names | `--name "<vault>" --project "<product>" --owner "<person>" --prefix LD` |
 | kinds or types | `--kinds A,B,C` |
 | Stop hook | `--stop-hook` |
 | working memory | `--working-memory` |

@@ -9,5 +9,5 @@ over: the wrong claim and the date it was believed are both evidence.
 - Second-brain archetype: folder per kind, `categories` links for topics, one template and one
   Base per kind, a deterministic lint whose schema is the templates.
 - Kinds at the start: @@KIND_LIST@@
-- (Record here what the interview decided: who reads the vault, what is private, what is
+- (fill in: what the interview decided. Who reads the vault, what is private, what is
   shareable, which plugins and why.)
