@@ -19,14 +19,26 @@ templates that the owner wants to write themselves means `content`.
 
 ## 2. Where does it live? (sets `--dest`)
 
-- **A directory in this repo** (Recommended for `roadmap` and `content`): `roadmap/`,
-  `lexicon/`, or a name the user gives. Tracked in git beside the code it serves.
+- **A directory in this repo** (Recommended for `roadmap` and `content`): named for the
+  project and the vault together, `acme-roadmap/` or `acme-lexicon/`, or a name the user
+  gives. Tracked in git beside the code it serves.
 - **The repo root is the vault** (usual for `brain`): the whole repository is the vault.
 - **A standalone folder elsewhere**: give the path.
 
+**The folder's name is the vault's name in Obsidian.** The vault switcher and the window title
+show the last segment of the path and nothing else; `--name` does not reach them. A vault in a
+folder called `roadmap/` is "roadmap" there, indistinguishable from every other project's. So
+never offer a bare `roadmap/`, `lexicon/`, `vault/` or `notes/`: the default is the vault's
+name as a slug (`--name "Acme roadmap"` gives `acme-roadmap/`, which is what `seed.py` uses
+when `--dest` is left out), and `seed.py` refuses a generic folder unless `--generic-dir-ok`
+is passed. Lower case with hyphens, because the path goes into a hook and shell commands. When
+the repo root is the vault, the repo's own folder name is what Obsidian shows; say so if it is
+something like `notes`.
+
 ## 3. What is it called, and whose is it? (sets `--name`, `--project`, `--owner`)
 
-Offer a default from the repo name ("Acme roadmap", "Acme Brain", "The lexicon"). `--owner`
+Offer a default from the repo name ("Acme roadmap", "Acme Brain", "Acme lexicon"), and always
+with the project in it: the folder is named from it (question 2). `--owner`
 is the person whose writing the vault holds; it appears in the authorship rules of `brain` and
 `content`. Always pass it: the script's fallback is the first word of `git config user.name`,
 which is often a handle. For a `roadmap`, also settle `--prefix`, the two or three letters
@@ -78,7 +90,7 @@ Ask only if the user seems to care, otherwise default to none.
 | Answer | Flag |
 |---|---|
 | purpose | `--archetype roadmap\|brain\|content` |
-| location | `--dest <dir>` |
+| location | `--dest <project>-<vault>` (omit it and the slug of `--name` is used) |
 | names | `--name "<vault>" --project "<product>" --owner "<person>" --prefix LD` |
 | kinds or types | `--kinds A,B,C` |
 | Stop hook | `--stop-hook` |

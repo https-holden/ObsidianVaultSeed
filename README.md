@@ -67,7 +67,7 @@ It writes structure, never content. You will not find invented example notes in 
 | | `roadmap` | `brain` | `content` |
 |---|---|---|---|
 | For | Planning a code project that Claude Code sessions build | A second brain: what is known, how things are done, who is who | Definitions or copy you write and your code reads |
-| Lives in | `roadmap/` in the repo | Usually the repo root | `lexicon/` (or any name) in the repo |
+| Lives in | `<project>-roadmap/` in the repo | Usually the repo root | `<project>-lexicon/` (or any name) in the repo |
 | Notes | `Ideas/` (raw capture) and `Builds/` (one per session, the prompt inside) | A folder per kind you choose: Knowledge, Playbooks, People, Projects, Meetings, Daily, Clippings, or your own | One note per entry, in a folder per type |
 | Organised by | `kind` (NOW, SPEC, POLISH, DREAM), `status`, `area` | `categories` links to topic pages (the kepano method) | `type`, `key`, `status` |
 | The gate | An idea is `Open`, `Done` or `Culled`; a build is `Planned` to `Shipped` | `draft`, `verified`, `stale` | `empty`, `draft`, `done`. Only `done` ships |
@@ -85,7 +85,7 @@ snippet.
 The scaffolder is one standard-library Python script and works on its own:
 
 ```bash
-python3 skills/vault-seed/scripts/seed.py --archetype roadmap --dest roadmap --name "Acme roadmap" --stop-hook
+python3 skills/vault-seed/scripts/seed.py --archetype roadmap --dest acme-roadmap --name "Acme roadmap" --stop-hook
 ```
 
 ```bash
@@ -93,7 +93,7 @@ python3 skills/vault-seed/scripts/seed.py --archetype brain --dest . --name "Acm
 ```
 
 ```bash
-python3 skills/vault-seed/scripts/seed.py --archetype content --dest lexicon --name "The lexicon" --kinds term,card
+python3 skills/vault-seed/scripts/seed.py --archetype content --dest acme-lexicon --name "Acme lexicon" --kinds term,card
 ```
 
 Add `--dry-run` to see the file list first. `--help` lists every flag.

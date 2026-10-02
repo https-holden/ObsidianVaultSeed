@@ -48,13 +48,15 @@ The one decision everything hangs on is the archetype:
 | `brain` | A second brain: knowledge, procedures, people, days | kepano method: a folder per kind, `categories` links for topics, a template and a Base per kind, a lint whose schema is the templates |
 | `content` | Authored definitions or copy that code reads | one note per entry, a `status` gate where only `done` ships, canonical keys, a scaffolder and a validator |
 
-A project can want two (a product repo with a `roadmap/` and a `lexicon/`). Seed them as
+A project can want two (a product repo with an `acme-roadmap/` and an `acme-lexicon/`). Seed them as
 separate vaults in separate directories: their readers and vocabularies differ, and a Base
 with no folder filter would list one vault's notes in the other.
 
 ## 3. Confirm the plan in a few lines
 
-Before writing, show: archetype, where the vault goes, its name, the kinds or types, plugins,
+Before writing, show: archetype, where the vault goes, the name Obsidian will list it under
+(its folder name, which must say which project it is: `acme-roadmap/`, never a bare
+`roadmap/`), its name, the kinds or types, plugins,
 whether the Stop hook is wired. Run the scaffolder with `--dry-run` first, every time: it is
 free, and it shows what would be created, what already exists and would be kept, and whether
 `.claude/settings.json` (which sits outside the vault) would change. One confirmation, then go.

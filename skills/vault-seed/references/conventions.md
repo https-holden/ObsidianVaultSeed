@@ -51,26 +51,27 @@ or when the user asks why something is the way it is, this is the answer.
 
 ## Root `CLAUDE.md` wording, when the vault is a subdirectory
 
-Adapt, do not paste blind. For a roadmap:
+Adapt, do not paste blind, and use the vault's real folder name. For a roadmap:
 
 > ## Working from the roadmap vault
 >
-> Planning lives in `roadmap/`, an Obsidian vault tracked in this repo. `Ideas/` is raw
+> Planning lives in `acme-roadmap/`, an Obsidian vault tracked in this repo. `Ideas/` is raw
 > capture, one file per idea. `Builds/` is units of work handed to a Claude Code session, one
-> file per session, the prompt in the note body. Start at `roadmap/Home.md`;
-> `roadmap/CLAUDE.md` is the contract and should be read before editing anything there.
+> file per session, the prompt in the note body. Start at `acme-roadmap/Home.md`;
+> `acme-roadmap/CLAUDE.md` is the contract and should be read before editing anything there.
 >
 > When a session starts from a build it says so, and the build's scope is the scope. When it
 > ends it writes back: `## Outcome`, `## Commits`, what was not done, and every discovery as
-> its own file in `roadmap/Ideas/`. Then `python3 roadmap/bin/reindex.py`, and commit.
+> its own file in `acme-roadmap/Ideas/`. Then `python3 acme-roadmap/bin/reindex.py`, and commit.
 
 For a content vault:
 
 > ## The lexicon vault
 >
-> `lexicon/` holds <owner>'s own definitions, one note per entry. `lexicon/CLAUDE.md` is its
-> contract. Only a `done` entry ships. The writing is <owner>'s: a session may draft from
-> their talk-through, never author a definition or flip a note to `done`.
+> `acme-lexicon/` holds <owner>'s own definitions, one note per entry.
+> `acme-lexicon/CLAUDE.md` is its contract. Only a `done` entry ships. The writing is
+> <owner>'s: a session may draft from their talk-through, never author a definition or flip
+> a note to `done`.
 
 ## Several sessions, one working tree
 

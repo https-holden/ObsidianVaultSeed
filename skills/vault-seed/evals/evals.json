@@ -4,7 +4,7 @@
     {
       "id": 1,
       "prompt": "This is a fresh Next.js repo for a recipe app called Ladle. I keep a TODO.md that's getting out of hand. Give this project a vault so I can plan builds properly. Answer your own interview with sensible defaults, I'm away from the keyboard.",
-      "expected_output": "A roadmap vault in roadmap/ with the Stop hook wired, reindex --check passing, a root CLAUDE.md section, and the TODO items offered for migration rather than invented notes.",
+      "expected_output": "A roadmap vault in ladle-roadmap/ (a folder named for the project, never a bare roadmap/) with the Stop hook wired, reindex --check passing, a root CLAUDE.md section, and the TODO items offered for migration rather than invented notes.",
       "files": []
     },
     {
@@ -16,7 +16,7 @@
     {
       "id": 3,
       "prompt": "The prompts in src/prompts hardcode what each tarot card means. I want to write those meanings myself in Obsidian and have the code read them. Set that up, defaults are fine.",
-      "expected_output": "A content vault (lexicon/) with a card type, canon.json, the status gate explained, vault.py check passing, and no definitions written by the model.",
+      "expected_output": "A content vault in a folder named for the project (for example tarot-lexicon/, never a bare lexicon/) with a card type, canon.json, the status gate explained, vault.py check passing, and no definitions written by the model.",
       "files": []
     }
   ]

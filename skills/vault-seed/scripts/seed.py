@@ -2,8 +2,8 @@
 """Scaffold an Obsidian vault from the seed assets. Standard library only.
 
     seed.py --archetype brain   --dest . --name "Acme Brain" --kinds Knowledge,Playbooks,People,Daily
-    seed.py --archetype roadmap --dest roadmap --name "Acme roadmap" --project Acme --stop-hook
-    seed.py --archetype content --dest lexicon --name "The lexicon" --kinds term,card --owner Holden
+    seed.py --archetype roadmap --dest acme-roadmap --name "Acme roadmap" --project Acme --stop-hook
+    seed.py --archetype content --dest acme-lexicon --name "Acme lexicon" --kinds term,card --owner Holden
     seed.py --self-update        pull the seed repo this skill was installed from
 
 Three rules it keeps, all learned in the vaults this was distilled from:
@@ -14,6 +14,8 @@ Three rules it keeps, all learned in the vaults this was distilled from:
 - It writes structure, never content. No note a person would have authored
   comes out of this script.
 - --dry-run prints exactly what a real run would write and touches nothing.
+- The vault's folder carries the project's name. Obsidian lists a vault by its
+  folder name and nothing else, so a folder called `roadmap` is refused.
 """
 from __future__ import annotations
 
@@ -22,6 +24,7 @@ import colorsys
 import datetime
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -30,6 +33,22 @@ SKILL_DIR = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 ASSETS = os.path.join(SKILL_DIR, "assets")
 TEXT_EXT = {".md", ".base", ".json", ".css", ".py", ".js", ".txt", ".canvas", ""}
 KNOWN_PLUGINS = ["home-button", "manual-modified", "resting-view", "sticky-bullets"]
+
+# Obsidian names a vault by the last segment of its path: the vault switcher,
+# the window title and the "open folder as vault" list show that and nothing
+# else, and --name cannot change it. A vault at <repo>/roadmap is "roadmap"
+# there, beside every other project's "roadmap". Learned from three projects
+# seeded that way. So a folder name that says only what kind of vault it is
+# gets refused, and the default folder is made from the vault's name.
+GENERIC_DIRS = {
+    "roadmap", "lexicon", "vault", "brain", "notes", "docs", "content", "obsidian",
+    "plan", "planning", "wiki", "kb", "knowledge", "second-brain",
+}
+
+
+def slug(text):
+    """'Acme roadmap' -> 'acme-roadmap': safe in a path, a hook and a shell command."""
+    return re.sub(r"[^a-z0-9]+", "-", text.lower()).strip("-")
 
 # ------------------------------------------------------------ brain kinds
 #
@@ -395,8 +414,12 @@ def add_plugins(seeder, dest, plugins, tokens):
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--archetype", choices=["brain", "roadmap", "content"])
-    ap.add_argument("--dest", help="vault directory (created if missing)")
-    ap.add_argument("--name", help="the vault's display name")
+    ap.add_argument("--dest", help="vault directory, created if missing. Obsidian shows the vault under "
+                                   "this folder's name, so it should say which project it is "
+                                   "(default: --name as a slug, e.g. acme-roadmap)")
+    ap.add_argument("--name", help="the vault's name as its notes and CLAUDE.md say it, e.g. \"Acme roadmap\"")
+    ap.add_argument("--generic-dir-ok", action="store_true",
+                    help="allow a folder name like roadmap/ that does not name the project")
     ap.add_argument("--project", help="the product or project the vault serves (default: the repo folder name)")
     ap.add_argument("--owner", help="whose writing the vault holds (default: git user.name's first word)")
     ap.add_argument("--prefix", help="roadmap: short prefix for build names, e.g. LD (default: from the project name)")
@@ -411,10 +434,18 @@ def main():
 
     if args.self_update:
         return self_update()
-    if not (args.archetype and args.dest and args.name):
-        ap.error("--archetype, --dest and --name are required")
+    if not (args.archetype and args.name):
+        ap.error("--archetype and --name are required")
 
-    dest = os.path.abspath(args.dest)
+    dest = os.path.abspath(args.dest or slug(args.name) or "vault")
+    vault_folder = os.path.basename(dest)
+    if vault_folder.lower() in GENERIC_DIRS and not args.generic_dir_ok:
+        project = slug(args.project or os.path.basename(git_root(dest) or os.path.dirname(dest)))
+        ap.error(
+            "the vault folder would be %r. Obsidian lists a vault by its folder name, so this one "
+            "would sit beside every other project's %r. Use --dest %s (or pass --generic-dir-ok)."
+            % (vault_folder, vault_folder,
+               os.path.join(os.path.dirname(args.dest or ""), "%s-%s" % (project, vault_folder.lower()))))
     repo_root = git_root(dest) or dest
     vault_path = os.path.relpath(dest, repo_root)
     prefix = "" if vault_path == "." else vault_path.replace(os.sep, "/") + "/"
@@ -472,6 +503,7 @@ def main():
     for path in seeder.kept:
         print("  = %s (exists, kept)" % os.path.relpath(path, repo_root))
     print("seed: %s %d files, kept %d, vault at %s" % (verb, len(seeder.made), len(seeder.kept), dest))
+    print("seed: Obsidian will list this vault as \"%s\" (its folder name)" % vault_folder)
     if not args.dry_run:
         print("seed: check it with: %s" % check)
     return 0
