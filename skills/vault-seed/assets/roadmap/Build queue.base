@@ -1,0 +1,48 @@
+filters:
+  and:
+    - note.type == "build"
+properties:
+  file.name:
+    displayName: Build
+  repo_area:
+    displayName: Area
+views:
+  - type: table
+    name: Queue
+    filters:
+      and:
+        - note.status != "Shipped"
+    order:
+      - file.name
+      - status
+      - kind
+      - repo_area
+      - model
+      - roadmap
+    sort:
+      - property: order
+        direction: ASC
+  - type: table
+    name: Shipped
+    filters:
+      and:
+        - note.status == "Shipped"
+    order:
+      - file.name
+      - kind
+      - repo_area
+      - roadmap
+    sort:
+      - property: order
+        direction: DESC
+  - type: table
+    name: All builds
+    order:
+      - file.name
+      - status
+      - kind
+      - repo_area
+      - model
+    sort:
+      - property: order
+        direction: ASC

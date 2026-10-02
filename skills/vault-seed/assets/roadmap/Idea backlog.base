@@ -1,0 +1,68 @@
+filters:
+  and:
+    - note.type == "idea"
+formulas:
+  # How long an idea has sat open. Guarded, since a migrated row may
+  # carry no created date.
+  days_open: 'if(created, (today() - date(created)).days, "")'
+properties:
+  file.name:
+    displayName: Idea
+  formula.days_open:
+    displayName: Days open
+views:
+  - type: table
+    name: Open
+    filters:
+      and:
+        - note.status == "Open"
+    order:
+      - file.name
+      - kind
+      - area
+      - created
+      - formula.days_open
+    sort:
+      - property: kind
+        direction: ASC
+    summaries:
+      formula.days_open: Average
+  - type: table
+    name: Live problems
+    filters:
+      and:
+        - note.status == "Open"
+        - note.kind == "NOW"
+    order:
+      - file.name
+      - area
+      - created
+      - formula.days_open
+    sort:
+      - property: created
+        direction: ASC
+  - type: table
+    name: Needs a decision
+    filters:
+      and:
+        - note.status == "Open"
+        - note.kind == "SPEC"
+    order:
+      - file.name
+      - area
+      - created
+      - formula.days_open
+    sort:
+      - property: created
+        direction: ASC
+  - type: table
+    name: All ideas
+    order:
+      - file.name
+      - status
+      - kind
+      - area
+      - created
+    sort:
+      - property: status
+        direction: ASC

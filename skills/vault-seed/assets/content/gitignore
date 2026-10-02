@@ -1,0 +1,9 @@
+# Obsidian per-machine UI state. The vault's content and its shared config
+# are tracked; where your panes happen to be is not.
+.obsidian/workspace.json
+.obsidian/workspace-mobile.json
+.obsidian/cache
+.obsidian/plugins/
+.obsidian/hotkeys.json
+.trash/
+.DS_Store

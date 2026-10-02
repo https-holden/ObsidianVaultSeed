@@ -1,0 +1,14 @@
+{
+  "name": "obsidian-vault-seed",
+  "owner": {
+    "name": "Holden McHugh"
+  },
+  "plugins": [
+    {
+      "name": "vault-seed",
+      "source": "./",
+      "description": "Interview, then scaffold an Obsidian vault for the current project.",
+      "version": "0.1.0"
+    }
+  ]
+}

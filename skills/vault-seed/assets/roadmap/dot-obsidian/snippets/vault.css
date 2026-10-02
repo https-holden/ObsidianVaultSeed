@@ -1,0 +1,24 @@
+/* Hide the reindex markers in Live Preview.
+ *
+ * bin/reindex.py delimits every generated block with an HTML comment. Those
+ * are structural, not content: the script finds its blocks by matching them.
+ * Reading view never renders HTML comments, so this only concerns Live
+ * Preview, where Obsidian shows them as dimmed text.
+ *
+ * Scoped away from code blocks on purpose. Obsidian gives comment tokens the
+ * same class inside a fenced block, so an unscoped rule would delete the
+ * comment lines out of any code sample in a build note's prompt.
+ */
+.markdown-source-view.mod-cm6 .cm-line:not(.HyperMD-codeblock) .cm-comment {
+  display: none;
+}
+
+/* A line holding nothing but a hidden marker still reserves its height, which
+ * leaves a gap where the comment used to be. Collapse it.
+ */
+.markdown-source-view.mod-cm6 .cm-line:not(.HyperMD-codeblock):has(> .cm-comment:only-child) {
+  height: 0;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+}

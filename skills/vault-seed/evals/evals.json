@@ -1,0 +1,23 @@
+{
+  "skill_name": "vault-seed",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "This is a fresh Next.js repo for a recipe app called Ladle. I keep a TODO.md that's getting out of hand. Give this project a vault so I can plan builds properly. Answer your own interview with sensible defaults, I'm away from the keyboard.",
+      "expected_output": "A roadmap vault in roadmap/ with the Stop hook wired, reindex --check passing, a root CLAUDE.md section, and the TODO items offered for migration rather than invented notes.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "seed a second brain here for my support job. I want claims, how-tos, people and a daily note, and a page for what's in flight. Take defaults for anything else.",
+      "expected_output": "A brain vault at the repo root with Knowledge, Playbooks, People and Daily, Now.md, lint passing, no invented notes.",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "The prompts in src/prompts hardcode what each tarot card means. I want to write those meanings myself in Obsidian and have the code read them. Set that up, defaults are fine.",
+      "expected_output": "A content vault (lexicon/) with a card type, canon.json, the status gate explained, vault.py check passing, and no definitions written by the model.",
+      "files": []
+    }
+  ]
+}

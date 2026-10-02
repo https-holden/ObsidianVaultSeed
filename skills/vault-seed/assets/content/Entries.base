@@ -1,0 +1,53 @@
+filters:
+  and:
+    - note.type != "index"
+    - note.type != "source"
+    - '!file.inFolder("_templates")'
+properties:
+  file.name:
+    displayName: Entry
+  short:
+    displayName: Short form
+views:
+  - type: table
+    name: In progress
+    filters:
+      and:
+        - note.status == "draft"
+    order:
+      - file.name
+      - type
+      - short
+      - keywords
+    sort:
+      - property: type
+        direction: ASC
+  - type: table
+    name: Unwritten
+    filters:
+      and:
+        - note.status == "empty"
+    order:
+      - file.name
+      - type
+      - key
+    sort:
+      - property: type
+        direction: ASC
+      - property: key
+        direction: ASC
+  - type: table
+    name: Everything
+    order:
+      - file.name
+      - type
+      - status
+      - short
+      - keywords
+    sort:
+      - property: type
+        direction: ASC
+      - property: file.name
+        direction: ASC
+    summaries:
+      short: Filled
