@@ -4,7 +4,13 @@
     seed.py --archetype brain   --dest . --name "Acme Brain" --kinds Knowledge,Playbooks,People,Daily
     seed.py --archetype roadmap --dest acme-roadmap --name "Acme roadmap" --project Acme --stop-hook
     seed.py --archetype content --dest acme-lexicon --name "Acme lexicon" --kinds term,card --owner Holden
+    seed.py --preset personal    --dest ~/Documents/Obsidian/sam-brain --name "Sam's Brain" --owner Sam
     seed.py --self-update        pull the seed repo this skill was installed from
+
+Presets are brains with the choices already made, after the two second brains this
+was distilled from: `personal` (a life: your notes, references, people, clippings,
+days) and `work` (a job: claims, procedures, people, meetings, clippings, days).
+Both get Now.md, Me.md, the ingest tools and the daily loop.
 
 Three rules it keeps, all learned in the vaults this was distilled from:
 
@@ -124,7 +130,14 @@ KINDS = {
         nots="Knowledge (copy it out to its own note and link back).",
         title="`YYYY-MM-DD`",
         props=[("tags", "\n  - daily")], views=[("Recent days", None, 14)], home="Recent days",
-        sort="file.name", body="## Notes\n\n## Learned\n\n"),
+        sort="file.name", body="## Brief\n\n## Notes\n\n## Learned\n\n"),
+}
+
+# The two second brains the seed was distilled from, as a set of flags. A preset
+# only fills in what was not given, so `--preset work --kinds ...` still works.
+PRESETS = {
+    "personal": dict(kinds="Notes,References,People,Clippings,Daily"),
+    "work": dict(kinds="Knowledge,Playbooks,People,Meetings,Clippings,Daily"),
 }
 
 PROP_TYPES = {
@@ -317,6 +330,13 @@ def brain_tokens(kinds, working_memory):
             schema[folder]["status"] = spec["status"]
         for key, _ in spec["props"]:
             types[key] = PROP_TYPES.get(key, "text")
+    daily_use = ["One folder per kind of note. New notes land in `%s/`. To make one, create the "
+                 "note in its folder and insert its template (Command palette, \"Templates: Insert "
+                 "template\")." % kinds[0], ""]
+    for folder in kinds:
+        spec = kind_spec(folder)
+        daily_use.append("- **`%s/`**, from *%s Template*: %s Its name: %s." % (
+            folder, spec["template"], spec["holds"], spec["title"]))
     drafts = [k for k in kinds if kind_spec(k).get("status") == DRAFTS]
     if drafts:
         home.append("## Needs attention\n\nDrafts are unchecked. Stale notes were contradicted "
@@ -333,17 +353,42 @@ def brain_tokens(kinds, working_memory):
               "Waiting on, Recently done, Open questions) and record the decision.")
     return dict(
         MAP_ROWS="\n".join(map_rows), KIND_ROWS="\n".join(kind_rows),
-        HOME_SECTIONS="\n".join(home), MEMORY_RULE=memory,
+        HOME_SECTIONS="\n".join(home), MEMORY_RULE=memory, DAILY_USE="\n".join(daily_use),
         DEFAULT_FOLDER=kinds[0], KIND_LIST=" ".join("%s/" % k for k in kinds),
         NOW_ROW=("| `Now.md` | Working memory: what is in flight, every bullet dated. | Facts "
                  "(they become notes), history. |\n" if working_memory else ""),
     ), schema, types
 
 
-def seed_brain(seeder, dest, tokens, kinds, working_memory):
+def section(name, tokens):
+    with open(os.path.join(ASSETS, "optional", "sections", name + ".md"), encoding="utf-8") as fh:
+        return sub(fh.read(), tokens)
+
+
+def seed_brain(seeder, dest, tokens, kinds, working_memory, me=False):
     extra, schema, types = brain_tokens(kinds, working_memory)
     tokens = dict(tokens, **extra)
+    ingest = "Clippings" in kinds
+    daily = working_memory and "Daily" in kinds
+    tokens.update(
+        ME_RULE=section("claude-me", tokens) if me else "",
+        ME_ROW=("| `Me.md` | Who the owner is, for any AI: purpose, sources, tools, what is "
+                "private. | Content. |\n" if me else ""),
+        BIN_EXTRA=(", `ingest.py` (bring things in), `librarian.py` and `librarian.md` (file them)"
+                   if ingest else ""),
+        EXTRA_SECTIONS="".join(section(n, tokens) + "\n" for n, on in
+                               (("claude-ingest", ingest), ("claude-daily", daily)) if on),
+        README_SECTIONS="".join(section(n, tokens) + "\n" for n, on in
+                                (("readme-daily", daily), ("readme-ingest", ingest)) if on),
+    )
     seeder.copy_tree(os.path.join(ASSETS, "brain"), dest, tokens)
+    if ingest:
+        seeder.copy_tree(os.path.join(ASSETS, "optional", "ingest"), dest, tokens)
+    if daily:
+        seeder.copy_tree(os.path.join(ASSETS, "optional", "daily-loop"), dest, tokens)
+    if me:
+        with open(os.path.join(ASSETS, "optional", "Me.md"), encoding="utf-8") as fh:
+            seeder.write(os.path.join(dest, "Me.md"), sub(fh.read(), tokens))
     for folder in kinds:
         spec = kind_spec(folder)
         seeder.write(os.path.join(dest, folder, ".gitkeep"), "")
@@ -414,6 +459,9 @@ def add_plugins(seeder, dest, plugins, tokens):
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--archetype", choices=["brain", "roadmap", "content"])
+    ap.add_argument("--preset", choices=sorted(PRESETS),
+                    help="a brain with the choices made: personal or work (sets --archetype brain, "
+                         "--kinds, --working-memory and --me)")
     ap.add_argument("--dest", help="vault directory, created if missing. Obsidian shows the vault under "
                                    "this folder's name, so it should say which project it is "
                                    "(default: --name as a slug, e.g. acme-roadmap)")
@@ -426,14 +474,24 @@ def main():
     ap.add_argument("--kinds", default="", help="brain: kind folders; content: entry types. Comma separated.")
     ap.add_argument("--plugins", default="", help="bundled home-made plugins to install: " + ", ".join(KNOWN_PLUGINS))
     ap.add_argument("--accent", help="accent colour as #rrggbb")
-    ap.add_argument("--working-memory", action="store_true", help="brain: add Now.md")
+    ap.add_argument("--working-memory", action="store_true",
+                    help="brain: add Now.md (and, with a Daily kind, the start-of-day and end-of-day skills)")
+    ap.add_argument("--me", action="store_true", help="brain: add Me.md, who the owner is, for any AI")
     ap.add_argument("--stop-hook", action="store_true", help="roadmap: wire the write-back Stop hook")
+    ap.add_argument("--date", help="the seed date written into the vault (default: today)")
     ap.add_argument("--dry-run", action="store_true")
     ap.add_argument("--self-update", action="store_true")
     args = ap.parse_args()
 
     if args.self_update:
         return self_update()
+    if args.preset:
+        if args.archetype not in (None, "brain"):
+            ap.error("--preset makes a brain; drop --archetype %s" % args.archetype)
+        args.archetype = "brain"
+        args.kinds = args.kinds or PRESETS[args.preset]["kinds"]
+        args.working_memory = args.me = True
+        args.project = args.project or args.owner or args.name
     if not (args.archetype and args.name):
         ap.error("--archetype and --name are required")
 
@@ -458,8 +516,9 @@ def main():
             owner = "the author"
     tokens = dict(
         VAULT_NAME=args.name, PROJECT=args.project or os.path.basename(repo_root),
-        VAULT_PATH="the repo root" if not prefix else "`%s`" % prefix, VAULT_PREFIX=prefix,
-        DATE=datetime.date.today().isoformat(), OWNER=owner, HOME_NOTE="Home",
+        VAULT_PATH=("`%s`" % prefix if prefix else "the repo root" if git_root(dest)
+                    else "the top of this folder"), VAULT_PREFIX=prefix,
+        DATE=args.date or datetime.date.today().isoformat(), OWNER=owner, HOME_NOTE="Home",
     )
     letters = [c for c in tokens["PROJECT"] if c.isalpha()]
     tokens["PREFIX"] = (args.prefix or "".join(letters[:2]) or "B").upper()
@@ -469,8 +528,11 @@ def main():
 
     if args.archetype == "brain":
         kinds = kinds or ["Knowledge", "Playbooks", "People"]
-        seed_brain(seeder, dest, tokens, kinds, args.working_memory)
-        merge_settings(seeder, repo_root, allow=["Bash(python3 %sbin/lint.py:*)" % prefix])
+        seed_brain(seeder, dest, tokens, kinds, args.working_memory, args.me)
+        allow = ["Bash(python3 %sbin/lint.py:*)" % prefix]
+        if "Clippings" in kinds:
+            allow += ["Bash(python3 %sbin/ingest.py:*)" % prefix]
+        merge_settings(seeder, repo_root, allow=allow)
         check = "python3 %sbin/lint.py" % prefix
     elif args.archetype == "roadmap":
         seeder.copy_tree(os.path.join(ASSETS, "roadmap"), dest, tokens)

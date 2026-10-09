@@ -19,10 +19,9 @@ Obsidian, "Open folder as vault", this directory. Start at [[Home]].
 
 ## Daily use
 
-(fill in: one short paragraph per kind, as each comes into use: when to make one, how to name
-it, what to fill in.)
+@@DAILY_USE@@
 
-## Keeping it honest
+@@README_SECTIONS@@## Keeping it honest
 
 `python3 @@VAULT_PREFIX@@bin/lint.py` checks the vault against its own templates and rules.
 Errors block a commit; warnings are worth a look.

@@ -48,6 +48,10 @@ The one decision everything hangs on is the archetype:
 | `brain` | A second brain: knowledge, procedures, people, days | kepano method: a folder per kind, `categories` links for topics, a template and a Base per kind, a lint whose schema is the templates |
 | `content` | Authored definitions or copy that code reads | one note per entry, a `status` gate where only `done` ships, canonical keys, a scaffolder and a validator |
 
+For a second brain with no special needs, `--preset personal` or `--preset work` makes the
+choices in one flag (see `references/interview.md`). Presets and any brain with a `Clippings`
+kind also get the ingest tools; with `--working-memory` and a `Daily` kind, the daily loop.
+
 A project can want two (a product repo with an `acme-roadmap/` and an `acme-lexicon/`). Seed them as
 separate vaults in separate directories: their readers and vocabularies differ, and a Base
 with no folder filter would list one vault's notes in the other.

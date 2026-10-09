@@ -1,12 +1,37 @@
 # Obsidian Vault Seed
 
+> **New to all this?** Read [START-HERE.md](START-HERE.md), or point your AI (Claude,
+> ChatGPT, anything) at this repo and say "help me set this up". The AI's instructions are in
+> [AGENTS.md](AGENTS.md). No GitHub account, Obsidian experience or terminal skills needed.
+
+A second brain you can set up in half an hour: an Obsidian vault with a place for each kind of
+note, rules an AI follows to keep it tidy, tools that bring in web pages, PDFs, documents,
+emails and old notes and file them for you, and a morning and evening habit that keeps it
+current. It works with Claude (best, because it can open your files) or any chat AI.
+
+| You want | Go to |
+|---|---|
+| To set one up, step by step | [START-HERE.md](START-HERE.md) |
+| A vault to open right now, no terminal | [`starter-vault/`](starter-vault) (download the ZIP, copy that folder) |
+| To learn Obsidian | [guides/obsidian-basics.md](guides/obsidian-basics.md) |
+| To bring your stuff in | [guides/bringing-things-in.md](guides/bringing-things-in.md) |
+| The daily habit | [guides/daily-loop.md](guides/daily-loop.md) |
+| ChatGPT prompts | [guides/prompts-for-any-ai.md](guides/prompts-for-any-ai.md) |
+| A backup | [guides/backup-with-github.md](guides/backup-with-github.md) |
+| To share one with a team | [guides/sharing-a-vault.md](guides/sharing-a-vault.md) |
+
+The rest of this page is for Claude Code users and for changing the seed itself.
+
+## The Claude Code skill
+
 A Claude Code skill that gives a project an Obsidian vault. You type `/vault-seed`, answer a
 few questions, and get a vault that you can browse in Obsidian and that Claude Code sessions
 can maintain without making a mess of it.
 
 It is the common ground of four vaults that were built by hand and ended up alike: a product
 roadmap, a lexicon that feeds prompts, a work second brain and a personal one. The seed is
-what they share, with the reasons written down.
+what they share, with the reasons written down. The two second brains are also available as
+presets, `--preset personal` and `--preset work`, which is what the setup scripts use.
 
 ## Install
 
@@ -72,7 +97,7 @@ It writes structure, never content. You will not find invented example notes in 
 | Organised by | `kind` (NOW, SPEC, POLISH, DREAM), `status`, `area` | `categories` links to topic pages (the kepano method) | `type`, `key`, `status` |
 | The gate | An idea is `Open`, `Done` or `Culled`; a build is `Planned` to `Shipped` | `draft`, `verified`, `stale` | `empty`, `draft`, `done`. Only `done` ships |
 | Its check | `bin/reindex.py --check` | `bin/lint.py` | `bin/vault.py check` |
-| Extra | A Stop hook that will not let a session end with a build it worked but did not write up | `Decisions.md`, optional `Now.md` working memory, a bundled `kepano-method` skill for audits | `canon.json` plus a scaffolder that writes a stub for every key your code expects |
+| Extra | A Stop hook that will not let a session end with a build it worked but did not write up | `Decisions.md`, optional `Now.md` working memory and `Me.md`, a bundled `kepano-method` skill for audits; with `Clippings`, the ingest tools and librarian; with `Now.md` and `Daily`, the `start-of-day` and `end-of-day` skills | `canon.json` plus a scaffolder that writes a stub for every key your code expects |
 
 A project can have more than one. They are seeded as separate vaults in separate folders.
 
@@ -94,6 +119,10 @@ python3 skills/vault-seed/scripts/seed.py --archetype brain --dest . --name "Acm
 
 ```bash
 python3 skills/vault-seed/scripts/seed.py --archetype content --dest acme-lexicon --name "Acme lexicon" --kinds term,card
+```
+
+```bash
+python3 skills/vault-seed/scripts/seed.py --preset personal --dest ~/Documents/Obsidian/sam-brain --name "Sam's Brain" --owner Sam
 ```
 
 Add `--dry-run` to see the file list first. `--help` lists every flag.
@@ -124,6 +153,13 @@ Four small plain-JavaScript Obsidian plugins are bundled (no build step): `home-
 ## What is in this repo
 
 ```
+START-HERE.md           for a person setting up their first vault
+AGENTS.md               for the AI helping them (Claude, ChatGPT, Codex, anything)
+setup/                  mac.sh and windows.ps1: install git, Python, Obsidian; make the vault
+starter-vault/          the personal preset, ready to open (rebuilt by tools/build_starter.py)
+guides/                 Obsidian basics, bringing things in, the daily loop, backup, sharing,
+                        chat prompts, and a Web Clipper template
+tools/                  check.py (the test suite) and build_starter.py
 skills/vault-seed/
   SKILL.md              what Claude follows when you type /vault-seed
   scripts/seed.py       the scaffolder
@@ -133,14 +169,17 @@ skills/vault-seed/
     brain/              the second brain (plus a kepano-method project skill)
     content/            the content vault
     plugins/            the four home-made plugins
-    optional/           pieces a flag adds (Now.md)
+    optional/           pieces a flag adds: Now.md, Me.md, the ingest tools and
+                        librarian, the daily-loop skills, and the CLAUDE.md sections for them
   evals/                test prompts for the skill
 install.sh              links the skill into ~/.claude/skills
 .claude-plugin/         manifests for installing as a Claude Code plugin
 ```
 
 To change what a seeded vault contains, edit the files under `assets/`. They are the vault,
-with `@@TOKENS@@` where a name goes.
+with `@@TOKENS@@` where a name goes. Then run `python3 tools/build_starter.py` to refresh
+`starter-vault/`, and `python3 tools/check.py`, which seeds every kind of vault, runs their
+checks and puts sample files through the ingest and librarian scripts.
 
 ## Credits
 

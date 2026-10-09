@@ -37,6 +37,10 @@ or when the user asks why something is the way it is, this is the answer.
 13. **Automation never bumps `modified`** and never writes into a person's own text. Imported
     text lives between markers; handwriting goes outside them.
 14. **The seed writes structure, a person writes content.** Nothing invented.
+15. **Ingested text is kept apart by folder.** What someone else wrote lives in `Clippings/`
+    and nowhere else; the owner's own imports (`--mine`) keep every word. A librarian, human
+    or AI, fills the frontmatter and the ingest region and nothing more, and a note waits
+    (`ingested:` with no `filed:`) until it has been filed.
 
 ## Where the vaults differ, on purpose
 

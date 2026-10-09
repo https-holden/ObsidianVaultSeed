@@ -17,6 +17,12 @@ Tell-tales: a pile of TODOs, a `RUNWAY.md` or an issues list means `roadmap`. "I
 re-explaining how X works" means `brain`. Strings or definitions hardcoded in prompts or
 templates that the owner wants to write themselves means `content`.
 
+**Presets.** When the answer is "a second brain for my life" or "for my job" and the user wants
+defaults, use `--preset personal` (Notes, References, People, Clippings, Daily) or `--preset
+work` (Knowledge, Playbooks, People, Meetings, Clippings, Daily). Both add `Now.md`, `Me.md`,
+the daily loop and the ingest tools, and skip questions 4 and 6. They are the shapes of the two
+personal and work brains this seed was distilled from.
+
 ## 2. Where does it live? (sets `--dest`)
 
 - **A directory in this repo** (Recommended for `roadmap` and `content`): named for the
@@ -54,7 +60,8 @@ build names start with (`LD-07 Faster search`); default to the project's initial
   say they are a first guess.
 - `brain`: pick from the kinds the seed knows, or name new ones (a new name gets a generic
   template to fill in). Known: `Knowledge` (claims), `Playbooks` (procedures), `People`,
-  `Projects`, `Meetings`, `References`, `Notes`, `Clippings`, `Daily`. Default:
+  `Projects`, `Meetings`, `References`, `Notes`, `Clippings`, `Daily`. `Clippings` brings the
+  ingest tools (`bin/ingest.py`, `bin/librarian.py`, the `file-clippings` skill). Default:
   `Knowledge,Playbooks,People`. Fewer is better: a kind is cheap to add the day a note has no
   home, and an unused one is clutter. The first kind listed is where new notes land.
 - `content`: the entry types, singular and lower case (`term`, `card`, `step`). Default `term`.
@@ -94,6 +101,8 @@ Ask only if the user seems to care, otherwise default to none.
 | names | `--name "<vault>" --project "<product>" --owner "<person>" --prefix LD` |
 | kinds or types | `--kinds A,B,C` |
 | Stop hook | `--stop-hook` |
-| working memory | `--working-memory` |
+| working memory | `--working-memory` (with a `Daily` kind it also adds the `start-of-day` and `end-of-day` skills) |
+| who the owner is | `--me` (adds `Me.md`) |
+| a personal or work second brain, choices made | `--preset personal\|work` |
 | accent | `--accent "#rrggbb"` |
 | plugins | `--plugins home-button,manual-modified` |

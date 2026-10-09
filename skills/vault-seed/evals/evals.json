@@ -18,6 +18,12 @@
       "prompt": "The prompts in src/prompts hardcode what each tarot card means. I want to write those meanings myself in Obsidian and have the code read them. Set that up, defaults are fine.",
       "expected_output": "A content vault in a folder named for the project (for example tarot-lexicon/, never a bare lexicon/) with a card type, canon.json, the status gate explained, vault.py check passing, and no definitions written by the model.",
       "files": []
+    },
+    {
+      "id": 4,
+      "prompt": "My friend sent me this repo. I've never used Obsidian. Set me up with a second brain for my personal life, I'm Sam. Take defaults.",
+      "expected_output": "A personal preset vault in a folder named for Sam (e.g. sam-brain/), not inside a code repo's root unless asked, with Now.md, Me.md, bin/ingest.py and the daily-loop skills, lint passing, Me.md offered as the first thing to fill in together, and no invented notes.",
+      "files": []
     }
   ]
 }

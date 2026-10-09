@@ -1,6 +1,6 @@
 {
   "name": "vault-seed",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Interview, then scaffold an Obsidian vault for the current project: a planning vault, a kepano-method second brain, or a content vault that code reads.",
   "author": {
     "name": "Holden McHugh"
