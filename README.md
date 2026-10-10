@@ -3,7 +3,7 @@
 > **Looking for a second brain?** A personal or work second brain, set up step by step for
 > people new to Obsidian (with ingest tools, a librarian, harvesting and pruning, and a daily
 > loop), lives in the sister repo
-> [second-brain-seed](https://github.com/https-holden/second-brain-seed). This repo is the
+> [Brain Garden](https://github.com/https-holden/brain-garden). This repo is the
 > Claude Code skill for project vaults: roadmaps, lexicons, and a plain kepano-style brain.
 
 A Claude Code skill that gives a project an Obsidian vault. You type `/vault-seed`, answer a
