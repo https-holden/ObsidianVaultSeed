@@ -102,6 +102,73 @@ def ingest_round_trip(vault, fx):
     check("librarian: --apply refuses other notes", "REFUSED  Home.md" in out, out)
 
 
+def prune_round_trip(vault, fx):
+    ing = [PY, os.path.join(vault, "bin", "ingest.py")]
+
+    def note(rel, fm, body="<!-- ingest:start -->\nx\n<!-- ingest:end -->\n\n## Notes\n\n- \n"):
+        path = os.path.join(vault, rel)
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        with open(path, "w", encoding="utf-8") as fh:
+            fh.write("---\n%s\n---\n%s" % (fm, body))
+
+    clip = ("categories: []\nauthor: []\nurl: \"https://ex.com/a\"\ncreated: 2026-01-01\npublished:\n"
+            "via: \"Feeds\"\ningested: 2026-01-01\nfiled: 2026-01-01")
+    note("Clippings/Unused one.md", clip)
+    note("Clippings/Unused one (2).md", clip)
+    note("Clippings/Linked one.md", clip.replace("/a", "/b"))
+    note("Clippings/Written on.md", clip.replace("/a", "/c"),
+         "<!-- ingest:start -->\nx\n<!-- ingest:end -->\n\n## Notes\n\n- my thought\n")
+    note("Clippings/Never filed.md", clip.replace("/a", "/d").replace("\nfiled: 2026-01-01", ""))
+    note("Notes/Old idea.md", "categories:\n  - \"[[Lonely]]\"\ncreated: 2026-01-01\ntopics: []",
+         "See [[Linked one]].\n")
+    note("Categories/Lonely.md", "tags:\n  - categories", "\n![[Topics.base#In this topic]]\n")
+    with open(os.path.join(vault, "Attachments", "orphan.png"), "wb") as fh:
+        fh.write(b"x")
+    src = os.path.join(vault, "Sources.md")
+    text = open(src, encoding="utf-8").read().replace(
+        "|---|---|---|---|---|---|\n",
+        "|---|---|---|---|---|---|\n| Feeds | articles | clipper | weekly | 2026-01-01 | trial |\n"
+        "| Old app | notes | importer | once | 2026-01-01 | yes |\n", 1)
+    with open(src, "w", encoding="utf-8") as fh:
+        fh.write(text)
+
+    code, out = run(ing + ["report"], cwd=vault)
+    want = ["Unused clippings", "Clippings/Unused one.md", "Waiting too long", "Clippings/Never filed.md",
+            "Thin topics", "Categories/Lonely.md", "Possible duplicates", "Unused attachments",
+            "Attachments/orphan.png", "Sources due", "Feeds  (weekly", "Where things come from", "Feeds:"]
+    missing = [w for w in want if w not in out]
+    unused = out.split("## Unused clippings", 1)[-1].split("##", 1)[0]
+    check("report: finds what to prune", code == 0 and not missing, "missing %s\n%s" % (missing, out))
+    check("report: a linked or written-on clipping is not 'unused'",
+          "Linked one" not in unused and "Written on" not in unused, unused)
+    check("report: a one-off source is never due", "Old app" not in out.split("## Sources due", 1)[-1].split("##")[0], out)
+    code, out = run(ing + ["report", "--due"], cwd=vault)
+    check("report --due lists only due sources", "DUE  Feeds" in out and "Old app" not in out, out)
+
+    code, out = run(ing + ["trash", "Unused one"], cwd=vault)
+    check("trash: moves an unused clipping to .trash/", code == 0 and
+          os.path.exists(os.path.join(vault, ".trash", "Unused one.md")), out)
+    code, out = run(ing + ["trash", "Linked one"], cwd=vault)
+    check("trash: refuses a linked clipping", code != 0 and os.path.exists(os.path.join(vault, "Clippings", "Linked one.md")), out)
+    code, out = run(ing + ["trash", "Written on"], cwd=vault)
+    check("trash: refuses a clipping the owner wrote on", code != 0, out)
+    code, out = run(ing + ["trash", "Old idea"], cwd=vault)
+    check("trash: refuses the owner's own notes", code != 0 and os.path.exists(os.path.join(vault, "Notes", "Old idea.md")), out)
+    code, out = run(ing + ["trash", "orphan.png"], cwd=vault)
+    check("trash: moves an unused attachment", code == 0 and os.path.exists(os.path.join(vault, ".trash", "orphan.png")), out)
+
+    run(ing + ["add", os.path.join(fx, "data.csv"), "--via", "Feeds"], cwd=vault)
+    run(ing + ["add", os.path.join(fx, "data.csv"), "--via", "New place"], cwd=vault)
+    code, out = run(ing + ["add", os.path.join(fx, "mail.eml"), "--via", "FEEDS"], cwd=vault)
+    made = re.search(r"ADDED  (\S.*?\.md)", out)
+    text = open(os.path.join(vault, made.group(1)), encoding="utf-8").read() if made else ""
+    check("add --via takes the spelling already in Sources.md", 'via: "Feeds"' in text, out + text)
+    text = open(src, encoding="utf-8").read()
+    check("add --via stamps Last pulled and adds new sources",
+          "| Feeds | articles | clipper | weekly | 2026-01-01 |" not in text and "| Feeds |" in text
+          and "| New place |" in text, text)
+
+
 def main():
     for root, _, files in os.walk(ROOT):
         if "/.git" in root:
@@ -142,6 +209,7 @@ def main():
         fx = os.path.join(tmp, "fx")
         fixtures(fx)
         ingest_round_trip(os.path.join(tmp, "sam-brain"), fx)
+        prune_round_trip(os.path.join(tmp, "sam-work-brain"), fx)
 
     code, out = run([PY, os.path.join(ROOT, "tools", "build_starter.py"), "--check"])
     check("starter-vault/ matches the seed", code == 0, out)

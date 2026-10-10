@@ -373,7 +373,9 @@ def seed_brain(seeder, dest, tokens, kinds, working_memory, me=False):
     tokens.update(
         ME_RULE=section("claude-me", tokens) if me else "",
         ME_ROW=("| `Me.md` | Who the owner is, for any AI: purpose, sources, tools, what is "
-                "private. | Content. |\n" if me else ""),
+                "private. | Content. |\n" if me else "") + (
+                "| `Sources.md` | Where material comes from: how, cadence, last pulled, keep or not. | "
+                "Notes. |\n" if ingest else ""),
         BIN_EXTRA=(", `ingest.py` (bring things in), `librarian.py` and `librarian.md` (file them)"
                    if ingest else ""),
         EXTRA_SECTIONS="".join(section(n, tokens) + "\n" for n, on in

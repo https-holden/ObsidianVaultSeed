@@ -61,7 +61,8 @@ build names start with (`LD-07 Faster search`); default to the project's initial
 - `brain`: pick from the kinds the seed knows, or name new ones (a new name gets a generic
   template to fill in). Known: `Knowledge` (claims), `Playbooks` (procedures), `People`,
   `Projects`, `Meetings`, `References`, `Notes`, `Clippings`, `Daily`. `Clippings` brings the
-  ingest tools (`bin/ingest.py`, `bin/librarian.py`, the `file-clippings` skill). Default:
+  ingest tools (`bin/ingest.py`, `bin/librarian.py`, `Sources.md`, and the `file-clippings`,
+  `harvest` and `prune` skills). Default:
   `Knowledge,Playbooks,People`. Fewer is better: a kind is cheap to add the day a note has no
   home, and an unused one is clutter. The first kind listed is where new notes land.
 - `content`: the entry types, singular and lower case (`term`, `card`, `step`). Default `term`.

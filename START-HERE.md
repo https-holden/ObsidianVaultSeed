@@ -73,6 +73,8 @@ That is your vault. (The helper scripts inside it need Python, which you can add
 3. **Fill in `Me.md`** with your AI: who you are and what this is for. Every AI that helps
    you reads it first.
 4. **Bring in a few things you care about**: [guides/bringing-things-in.md](guides/bringing-things-in.md).
+   Not sure what? Say "harvest" to your AI and it will interview you
+   ([guides/harvesting-and-pruning.md](guides/harvesting-and-pruning.md)).
 5. **Make it a habit**: [guides/daily-loop.md](guides/daily-loop.md). "Start my day" in the
    morning, "end of day" at night.
 
@@ -88,6 +90,7 @@ Using ChatGPT? The copy-and-paste prompts are in
 - **`Now.md`**: what is on your plate, kept current every evening.
 - **Tools to bring things in**: web pages, PDFs, Word files, emails, photos, old notes from
   Apple Notes, Notion or Evernote. An AI librarian files them: summary, name, topics, links.
+- **A monthly prune** that shows what you collect but never use, so the vault stays useful.
 - **Rules your AI follows** (`CLAUDE.md` in the vault), so it keeps things consistent instead
   of making a mess.
 

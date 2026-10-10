@@ -90,20 +90,40 @@ make one note and one link while you explain, so it sticks.
 what is private. Interview them, a few questions at a time, and write it (or give them the
 text to paste). Every AI that helps them later reads it first.
 
-### 5. Bring in the first things
+### 5. Harvest: find their sources, then bring in a sample
 
-Ask what they already have: articles, PDFs, an old journal, notes in another app, voice memos.
-Pick two or three and bring them in with them, following
-[guides/bringing-things-in.md](guides/bringing-things-in.md). Then file them: with Claude,
-`python3 bin/librarian.py` or "file my clippings"; with a chat AI, the `--paste` and `--apply`
-round trip. Open the filed notes in Obsidian together and show them the topic pages filling
-themselves in.
+Do not start with "what do you want to import?". Most people answer "everything" or "nothing".
+Interview them instead, a few questions at a time (the vault's `harvest` skill has the full
+procedure, and [guides/harvesting-and-pruning.md](guides/harvesting-and-pruning.md) has the
+reasoning and the prompts):
+
+1. Where does your thinking happen today? (Notes app, voice memos, messages to yourself,
+   screenshots, bookmarks, email drafts, paper, a journal app.)
+2. What do you keep losing, or finding again? **Start with that source.**
+3. What do you collect from other people? (Articles, videos, recipes, newsletters, highlights.)
+4. A year from now, what would you want to find here?
+5. What must never come in?
+
+Then propose one numbered list: each source, what it brings, how (the table in
+[guides/bringing-things-in.md](guides/bringing-things-in.md)), how often, and whether to
+backfill or only capture from now. Write the agreed ones into the vault's `Sources.md`, and the
+rejected ones under "Not brought in, on purpose".
+
+**Sample before any bulk import.** Bring in about ten items from the first source with
+`--via "<Source>"` (so `Sources.md` is stamped), file them (with Claude, `python3 bin/librarian.py`
+or "file my clippings"; with a chat AI, the `--paste` and `--apply` round trip), then open two
+or three in Obsidian together. Is this what they wanted to keep? Adjust, and only then bring in
+the rest, with `--dry-run` first. Their own writing before other people's, recent before old.
+Show them the topic pages filling themselves in.
 
 ### 6. Show them the daily loop
 
 [guides/daily-loop.md](guides/daily-loop.md): "start my day" in the morning, jot under
 `## Notes` in the daily note, "end of day" in the evening. That habit is what makes it a
-second brain. With a chat AI, the prompts are in
+second brain. Tell them about the monthly **prune** too: `python3 bin/ingest.py report` lists
+unused clippings, duplicates, thin topics, overdue sources and how much of each source they
+actually use, and the `prune` skill turns it into one numbered list. Nothing they wrote is
+ever deleted by it. With a chat AI, the prompts are in
 [guides/prompts-for-any-ai.md](guides/prompts-for-any-ai.md).
 
 ### 7. Optional, later

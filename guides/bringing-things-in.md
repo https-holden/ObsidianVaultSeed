@@ -75,3 +75,7 @@ ideas for new kinds of notes or pages, which the librarian may suggest but never
 Start small. Ten things you actually care about beat a thousand imported notes you will never
 open. A good first week: your last few journal entries (`--mine`), five articles you meant to
 keep, and one export from the app you used before.
+
+Not sure where to start, or worried about importing too much? See
+[harvesting-and-pruning.md](harvesting-and-pruning.md): an interview to find your sources, the
+sample-first rule, `Sources.md`, and the monthly prune.

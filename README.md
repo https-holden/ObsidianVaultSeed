@@ -15,6 +15,7 @@ current. It works with Claude (best, because it can open your files) or any chat
 | A vault to open right now, no terminal | [`starter-vault/`](starter-vault) (download the ZIP, copy that folder) |
 | To learn Obsidian | [guides/obsidian-basics.md](guides/obsidian-basics.md) |
 | To bring your stuff in | [guides/bringing-things-in.md](guides/bringing-things-in.md) |
+| To choose what to bring in, and prune later | [guides/harvesting-and-pruning.md](guides/harvesting-and-pruning.md) |
 | The daily habit | [guides/daily-loop.md](guides/daily-loop.md) |
 | ChatGPT prompts | [guides/prompts-for-any-ai.md](guides/prompts-for-any-ai.md) |
 | A backup | [guides/backup-with-github.md](guides/backup-with-github.md) |
@@ -97,7 +98,7 @@ It writes structure, never content. You will not find invented example notes in 
 | Organised by | `kind` (NOW, SPEC, POLISH, DREAM), `status`, `area` | `categories` links to topic pages (the kepano method) | `type`, `key`, `status` |
 | The gate | An idea is `Open`, `Done` or `Culled`; a build is `Planned` to `Shipped` | `draft`, `verified`, `stale` | `empty`, `draft`, `done`. Only `done` ships |
 | Its check | `bin/reindex.py --check` | `bin/lint.py` | `bin/vault.py check` |
-| Extra | A Stop hook that will not let a session end with a build it worked but did not write up | `Decisions.md`, optional `Now.md` working memory and `Me.md`, a bundled `kepano-method` skill for audits; with `Clippings`, the ingest tools and librarian; with `Now.md` and `Daily`, the `start-of-day` and `end-of-day` skills | `canon.json` plus a scaffolder that writes a stub for every key your code expects |
+| Extra | A Stop hook that will not let a session end with a build it worked but did not write up | `Decisions.md`, optional `Now.md` working memory and `Me.md`, a bundled `kepano-method` skill for audits; with `Clippings`, the ingest tools and librarian, `Sources.md`, and the `harvest` and `prune` skills; with `Now.md` and `Daily`, the `start-of-day` and `end-of-day` skills | `canon.json` plus a scaffolder that writes a stub for every key your code expects |
 
 A project can have more than one. They are seeded as separate vaults in separate folders.
 

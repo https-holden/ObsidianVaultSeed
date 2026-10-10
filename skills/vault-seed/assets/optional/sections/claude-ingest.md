@@ -17,3 +17,14 @@ written into one of the owner's notes.
   boxed in to the waiting notes), or a chat AI (`bin/librarian.py --paste`, then `--apply`).
 - Big exports from another app go through Obsidian's Importer plugin into a scratch folder,
   then `ingest.py add --mine` on that folder.
+- `Sources.md` is the inventory of where material comes from: how, cadence, last pulled, and
+  whether it is worth keeping. Pass `--via "<Source>"` on every `add`, so the note records
+  where it came from and the row's Last pulled is stamped. The `harvest` skill builds the
+  inventory with the owner (interview, then a sample of about ten, then the backfill); never
+  bulk-import before a sample has been filed and looked at.
+- `ingest.py report` is the pruning list: unused clippings, notes waiting too long, old
+  drafts, stale notes, thin topics, quiet people, duplicates, unused attachments, sources due,
+  and how much of each source gets used. The `prune` skill turns it into one numbered list,
+  monthly. `ingest.py trash` is the only way anything is removed, it only moves clippings and
+  attachments that nothing links, to `.trash/`, and the owner's own notes are never removed
+  by a session.

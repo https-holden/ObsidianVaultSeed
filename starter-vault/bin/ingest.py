@@ -6,6 +6,15 @@
     python3 bin/ingest.py add --links links.txt           every URL in a text file, one per line
     python3 bin/ingest.py waiting                         what the librarian has not filed yet
     python3 bin/ingest.py rename "Old name" "New name"    rename a note that is still waiting
+    python3 bin/ingest.py report [--days 30] [--due]      what to prune, which sources are due
+                                                          and which ones earn their place
+    python3 bin/ingest.py trash "Note name"               move an unused clipping (or an unused
+                                                          attachment) to Obsidian's .trash/
+
+Name where things came from with --via "<Source>" (say --via "Voice memos"). It is
+written into each note as `via:`, stamps "Last pulled" on that row of Sources.md
+(adding the row if there is none), and lets `report` say which sources are worth it.
+A URL's via defaults to its website.
 
 What it does with each thing:
 
@@ -65,6 +74,8 @@ SKIP_DIRS = {".git", ".obsidian", ".trash", ".claude", "bin", "node_modules", "_
 NOTION_ID = re.compile(r"\s+[0-9a-f]{32}$")
 URL = re.compile(r"^https?://\S+$")
 TODAY = dt.date.today().isoformat()
+VIA = ""  # set by `add --via`
+CADENCE = {"daily": 1, "weekly": 7, "monthly": 31}
 DOC_EXT = {".md", ".markdown", ".txt", ".html", ".htm", ".docx", ".eml", ".csv", ".pdf", ".json"}
 
 
@@ -169,6 +180,9 @@ def frontmatter(folder: str, fields: dict, carry: list[str]) -> str:
     for key in ("url", "author", "published"):
         if key not in have and fields.get(key):
             lines.append(key + ":" + yaml_value(fields[key]))
+    via = VIA or (urllib.parse.urlparse(fields["url"]).netloc.replace("www.", "") if fields.get("url") else "")
+    if via and "via" not in have:
+        lines.append("via:" + yaml_value(via))
     lines.append("ingested: " + TODAY)
     lines.extend(carry)
     lines.append("---")
@@ -571,7 +585,58 @@ def add_folder(root: Path, folder: str, mine: bool, taken: set[str], dry: bool, 
             add_file(p, folder, mine, taken, dry, used)
 
 
+def source_names() -> list[str]:
+    """The Source column of Sources.md, as spelled there."""
+    path = VAULT / "Sources.md"
+    if not path.exists():
+        return []
+    out, rows = [], False
+    for ln in path.read_text(encoding="utf-8").split("\n"):
+        if ln.startswith("| Source"):
+            rows = True
+        elif rows and ln.startswith("|") and not ln.startswith("|---"):
+            out.append(ln.strip().strip("|").split("|")[0].strip().strip("[]"))
+        elif rows and not ln.startswith("|"):
+            break
+    return out
+
+
+def stamp_source(via: str) -> None:
+    """Set Last pulled on the Sources.md row named `via`, adding the row if it is missing."""
+    path = VAULT / "Sources.md"
+    if not path.exists():
+        return
+    lines = path.read_text(encoding="utf-8").split("\n")
+    head = next((i for i, ln in enumerate(lines) if ln.startswith("| Source")), None)
+    if head is None:
+        return
+    cols = [c.strip().lower() for c in lines[head].strip("|").split("|")]
+    at = cols.index("last pulled") if "last pulled" in cols else None
+    end = head + 2
+    while end < len(lines) and lines[end].startswith("|"):
+        end += 1
+    for i in range(head + 2, end):
+        cells = [c.strip() for c in lines[i].strip().strip("|").split("|")]
+        if cells and cells[0].strip("[]").lower() == via.lower():
+            if at is not None and at < len(cells):
+                cells[at] = TODAY
+                lines[i] = "| " + " | ".join(cells) + " |"
+            break
+    else:
+        row = [""] * len(cols)
+        row[0] = via
+        for name, value in (("how", "`ingest.py add --via`"), ("last pulled", TODAY), ("keep?", "trial")):
+            if name in cols:
+                row[cols.index(name)] = value
+        lines.insert(end, "| " + " | ".join(row) + " |")
+        print("SOURCE   added %r to Sources.md (fill in its cadence)" % via)
+    path.write_text("\n".join(lines), encoding="utf-8")
+
+
 def cmd_add(args) -> None:
+    global VIA
+    VIA = (args.via or "").translate(DASHES).strip()
+    VIA = next((s for s in source_names() if s.lower() == VIA.lower()), VIA)  # Sources.md's spelling
     folder = kind_folder(args.mine)
     taken = note_names()
     used: set[Path] = set()
@@ -596,6 +661,8 @@ def cmd_add(args) -> None:
     if args.dry_run:
         print("(dry run: nothing was written)")
     else:
+        if VIA:
+            stamp_source(VIA)
         print("Next: file them with `python3 bin/librarian.py`, or ask your AI to follow bin/librarian.md.")
 
 
@@ -652,6 +719,192 @@ def cmd_rename(args) -> None:
     rename(args.old, args.new)
 
 
+# ------------------------------------------------------------ pruning
+
+
+LINK_TO = re.compile(r"\[\[([^\]|#^]+)")
+
+
+def head_and_body(text: str) -> tuple[dict, str]:
+    """Top-level frontmatter keys as raw text, and the body."""
+    if not text.startswith("---\n") or "\n---" not in text[3:]:
+        return {}, text
+    end = text.index("\n---", 3)
+    fm: dict = {}
+    key = None
+    for line in text[4:end].split("\n"):
+        m = re.match(r"^([A-Za-z_][\w-]*):\s*(.*)$", line)
+        if m:
+            key = m.group(1)
+            fm[key] = m.group(2).strip()
+        elif key and line.strip():
+            fm[key] += "\n" + line
+    return fm, text[end + 4:]
+
+
+def day(value: str) -> dt.date | None:
+    m = re.search(r"\d{4}-\d{2}-\d{2}", value or "")
+    try:
+        return dt.date.fromisoformat(m.group(0)) if m else None
+    except ValueError:
+        return None
+
+
+def own_text(body: str) -> bool:
+    """Has the owner written anything below the ingest:end marker?"""
+    tail = body.split(END, 1)[1] if END in body else ""
+    left = [ln for ln in tail.split("\n") if ln.strip() not in ("", "-", "- ", "## Notes")]
+    return bool(left)
+
+
+def scan() -> tuple[dict, dict, set]:
+    """(notes by rel path, inbound link count by lower-case name, every link target)."""
+    notes, inbound, targets = {}, {}, set()
+    for root, dirs, files in os.walk(VAULT):
+        dirs[:] = sorted(d for d in dirs if d not in SKIP_DIRS and d != "Templates")
+        for fn in sorted(files):
+            if not fn.endswith(".md"):
+                continue
+            p = Path(root) / fn
+            text = p.read_text(encoding="utf-8", errors="replace")
+            fm, body = head_and_body(text)
+            rel = p.relative_to(VAULT).as_posix()
+            notes[rel] = dict(path=p, name=unicodedata.normalize("NFC", p.stem), fm=fm, body=body)
+            seen = set()
+            for m in LINK_TO.finditer(text):
+                target = unicodedata.normalize("NFC", m.group(1).strip()).split("/")[-1]
+                target = target[:-3] if target.endswith(".md") else target
+                targets.add(target.lower())
+                if target.lower() != p.stem.lower() and target.lower() not in seen:
+                    seen.add(target.lower())
+                    inbound[target.lower()] = inbound.get(target.lower(), 0) + 1
+    return notes, inbound, targets
+
+
+def sources_due() -> list[str]:
+    path = VAULT / "Sources.md"
+    if not path.exists():
+        return []
+    lines = path.read_text(encoding="utf-8").split("\n")
+    head = next((i for i, ln in enumerate(lines) if ln.startswith("| Source")), None)
+    if head is None:
+        return []
+    cols = [c.strip().lower() for c in lines[head].strip("|").split("|")]
+    out = []
+    for ln in lines[head + 2:]:
+        if not ln.startswith("|"):
+            break
+        cells = dict(zip(cols, [c.strip() for c in ln.strip().strip("|").split("|")]))
+        every = CADENCE.get(cells.get("cadence", "").lower())
+        if not every or cells.get("keep?", "").lower() == "no":
+            continue
+        last = day(cells.get("last pulled", ""))
+        if last is None or (dt.date.today() - last).days >= every:
+            out.append("%s  (%s; last pulled %s)" % (cells.get("source", "?"), cells["cadence"],
+                                                     last.isoformat() if last else "never"))
+    return out
+
+
+def cmd_report(args) -> None:
+    today = dt.date.today()
+    old = lambda d: d is not None and (today - d).days >= args.days  # noqa: E731
+    due = sources_due()
+    if args.due:
+        print("\n".join("DUE  " + s for s in due) or "No source is due.")
+        return
+    notes, inbound, targets = scan()
+    used = lambda n: inbound.get(n["name"].lower(), 0) > 0 or own_text(n["body"])  # noqa: E731
+    sections = []
+
+    def section(title, why, items):
+        if items:
+            sections.append("## %s (%d)\n%s\n%s" % (title, len(items), why, "\n".join("  - " + i for i in items)))
+
+    clips = {r: n for r, n in notes.items() if r.startswith("Clippings/")}
+    section("Unused clippings", "Filed %d+ days ago, nothing links to them, nothing written below the marker. "
+            "Candidates for `trash`." % args.days,
+            [r for r, n in clips.items() if old(day(n["fm"].get("filed", ""))) and not used(n)])
+    section("Waiting too long", "Imported 7+ days ago and never filed. Run the librarian.",
+            [r for r, n in notes.items() if "ingested" in n["fm"] and "filed" not in n["fm"]
+             and (today - (day(n["fm"]["ingested"]) or today)).days >= 7])
+    section("Old drafts", "status: draft for %d+ days. Verify, rewrite or delete." % args.days,
+            [r for r, n in notes.items() if n["fm"].get("status") == "draft" and old(day(n["fm"].get("created", "")))])
+    section("Stale notes", "Contradicted by something newer. Rewrite or delete.",
+            [r for r, n in notes.items() if n["fm"].get("status") == "stale"])
+    topic_use: dict = {}
+    for r, n in notes.items():
+        if not r.startswith("Categories/"):
+            for t in LINK_TO.findall(n["fm"].get("categories", "")):
+                topic_use[t.strip().lower()] = topic_use.get(t.strip().lower(), 0) + 1
+    section("Thin topics", "A topic page with one note or none. Merge into a broader topic, or wait.",
+            ["%s (%d)" % (r, topic_use.get(n["name"].lower(), 0)) for r, n in notes.items()
+             if r.startswith("Categories/") and topic_use.get(n["name"].lower(), 0) <= 1])
+    section("Quiet people", "A person page made %d+ days ago that at most one note mentions." % args.days,
+            [r for r, n in notes.items() if r.startswith("People/") and old(day(n["fm"].get("created", "")))
+             and inbound.get(n["name"].lower(), 0) <= 1])
+    by_url: dict = {}
+    by_title: dict = {}
+    for r, n in notes.items():
+        url = n["fm"].get("url", "").strip('"')
+        if url:
+            by_url.setdefault(url.rstrip("/"), []).append(r)
+        by_title.setdefault(re.sub(r" \(\d+\)$", "", n["name"]).lower(), []).append(r)
+    dupes = [" = ".join(v) for v in list(by_url.values()) + list(by_title.values()) if len(v) > 1]
+    section("Possible duplicates", "Same link or same name. Merge into one note, then trash the rest.",
+            sorted(set(dupes)))
+    orphans = []
+    if ATTACH.is_dir():
+        orphans = sorted("Attachments/" + f.name for f in ATTACH.iterdir()
+                         if f.is_file() and not f.name.startswith(".") and f.name.lower() not in targets
+                         and f.stem.lower() not in targets)
+    section("Unused attachments", "No note embeds or links them.", orphans)
+    section("Sources due", "Past their cadence in Sources.md. Pull them, or change the cadence.", due)
+
+    stats: dict = {}
+    for r, n in notes.items():
+        if "ingested" in n["fm"]:
+            via = n["fm"].get("via", "").strip('"') or "(no via)"
+            via = next((k for k in stats if k.lower() == via.lower()), via)
+            s = stats.setdefault(via, [0, 0])
+            s[0] += 1
+            s[1] += 1 if used(n) else 0
+    if stats:
+        rows = sorted(stats.items(), key=lambda kv: (-kv[1][1], -kv[1][0]))
+        sections.append("## Where things come from\nImported, and how many you have linked to or written "
+                        "on. A source whose notes go unused is a candidate for `Keep?: no` in Sources.md.\n"
+                        + "\n".join("  - %s: %d imported, %d used (%d%%)" % (v, a, b, round(100 * b / a))
+                                     for v, (a, b) in rows))
+    print("\n\n".join(sections) if sections else "Nothing to prune. The vault is in good shape.")
+
+
+def cmd_trash(args) -> None:
+    """Move one unused clipping or attachment to .trash/, which Obsidian and git both ignore."""
+    name = unicodedata.normalize("NFC", args.name.strip())
+    trash = VAULT / ".trash"
+    notes, inbound, targets = scan()
+    att = ATTACH / name
+    if att.is_file():
+        if name.lower() in targets or att.stem.lower() in targets:
+            sys.exit("Refused: a note still embeds or links %s." % name)
+        trash.mkdir(exist_ok=True)
+        shutil.move(str(att), str(trash / name))
+        print("TRASHED  Attachments/%s" % name)
+        return
+    stem = name[:-3] if name.endswith(".md") else name
+    match = [n for r, n in notes.items() if r.startswith("Clippings/") and n["name"] == stem]
+    if not match:
+        sys.exit("Refused: no clipping named %r. Only clippings and attachments can be trashed here; "
+                 "your own notes are only ever deleted by you, in Obsidian." % stem)
+    n = match[0]
+    if inbound.get(stem.lower(), 0):
+        sys.exit("Refused: %d note(s) link to %r. Remove those links first, or keep it." % (inbound[stem.lower()], stem))
+    if own_text(n["body"]):
+        sys.exit("Refused: you wrote something below the ingest:end marker in %r." % stem)
+    trash.mkdir(exist_ok=True)
+    shutil.move(str(n["path"]), str(trash / n["path"].name))
+    print("TRASHED  Clippings/%s.md  (restore it from .trash/ or Obsidian's file recovery)" % stem)
+
+
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = ap.add_subparsers(dest="cmd", required=True)
@@ -659,6 +912,7 @@ def main() -> None:
     a.add_argument("items", nargs="*")
     a.add_argument("--mine", action="store_true", help="you wrote these: file them with your own notes")
     a.add_argument("--links", help="a text file with one URL per line")
+    a.add_argument("--via", help="where these came from, as named in Sources.md (\"Voice memos\")")
     a.add_argument("--dry-run", action="store_true")
     a.set_defaults(func=cmd_add)
     w = sub.add_parser("waiting", help="list notes not yet filed")
@@ -667,6 +921,13 @@ def main() -> None:
     r.add_argument("old")
     r.add_argument("new")
     r.set_defaults(func=cmd_rename)
+    rp = sub.add_parser("report", help="what to prune, which sources are due, which earn their place")
+    rp.add_argument("--days", type=int, default=30, help="how old before something counts as unused (30)")
+    rp.add_argument("--due", action="store_true", help="only the sources that are due a pull")
+    rp.set_defaults(func=cmd_report)
+    tr = sub.add_parser("trash", help="move an unused clipping or attachment to .trash/")
+    tr.add_argument("name")
+    tr.set_defaults(func=cmd_trash)
     args = ap.parse_args()
     args.func(args)
 

@@ -32,6 +32,11 @@ Tip: in ChatGPT, make a **Project** called "Second brain" and put your vault's `
 >
 > (paste CLAUDE.md, then the text)
 
+## Finding your sources, and pruning
+
+The harvesting interview and the monthly pruning prompt are in
+[harvesting-and-pruning.md](harvesting-and-pruning.md#prompts).
+
 ## Filing imported notes
 
 Run `python3 bin/librarian.py --paste` in your vault. It copies the whole job, rules and
