@@ -21,7 +21,7 @@ change is recorded in `Decisions.md` in the same session.
 - When you notice drift between this file and the vault, propose the smallest edit to the
   wrong one in the same session. Never silently adapt and leave the doc behind.
 - @@MEMORY_RULE@@
-@@ME_RULE@@- Load the matching skill before doing the work: `obsidian:obsidian-markdown` before writing
+- Load the matching skill before doing the work: `obsidian:obsidian-markdown` before writing
   or restructuring any note, `obsidian:obsidian-bases` before touching a `.base`,
   `obsidian:obsidian-cli` when something must happen in the running app,
   `obsidian:json-canvas` for `.canvas` files, `obsidian:defuddle` to turn a web page into a
@@ -52,11 +52,11 @@ Folders say what a note *is*; `categories` says what it is *about*.
 | Path | Holds | Not |
 |---|---|---|
 | `Home.md`, `Readme.md`, `Decisions.md`, `CLAUDE.md` | Hub, human guide, decision log, rules. | Content. |
-@@ME_ROW@@@@NOW_ROW@@@@MAP_ROWS@@
+@@NOW_ROW@@@@MAP_ROWS@@
 | `Categories/` | One page per topic in use: `tags: [categories]`, one paragraph, `![[Topics.base#In this topic]]`. Every link here must resolve. | Topics with no notes yet. |
 | `Templates/`, `Templates/Bases/` | One template and one Base per kind, plus the general Bases (`Everything`, `Topics`, `Related`, `Backlinks`, `Attachments`). Core `{{date}}` syntax only. | Templater syntax. |
 | `Attachments/` | Every file, flat. | Subfolders. |
-| `bin/` | `lint.py` (the drift check) and its `vault.json`@@BIN_EXTRA@@. Re-runnable maintenance scripts. | Secrets, logs in git. |
+| `bin/` | `lint.py` (the drift check) and its `vault.json`. Re-runnable maintenance scripts. | Secrets, logs in git. |
 | `.obsidian/` | Tracked config, the `vault.css` snippet, any home-made plugins. Document a new plugin in `Readme.md`. | Content. |
 
 ## Kinds in use
@@ -71,7 +71,7 @@ property its Base will show, `Templates/Bases/<Kind>.base` filtered on `file.inF
 entry in `bin/vault.json` so the lint knows it, a row in both tables above, a paragraph in
 `Readme.md`, and a line in `Decisions.md`.
 
-@@EXTRA_SECTIONS@@## Keeping the documentation honest
+## Keeping the documentation honest
 
 `python3 @@VAULT_PREFIX@@bin/lint.py` is the deterministic drift check; its docstring lists
 every check. **The schema comes from the templates, so a template edit is a schema edit.** Run

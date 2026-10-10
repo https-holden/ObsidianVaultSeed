@@ -1,6 +1,0 @@
----
-categories: []
-created: {{date}}
-topics: []
----
-

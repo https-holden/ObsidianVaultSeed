@@ -8,7 +8,7 @@
       "name": "vault-seed",
       "source": "./",
       "description": "Interview, then scaffold an Obsidian vault for the current project.",
-      "version": "0.2.0"
+      "version": "0.1.0"
     }
   ]
 }
